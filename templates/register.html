@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}注册{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">用户注册</h2>
+    <form method="POST">
+        <div class="mb-4">
+            <label for="name" class="block text-gray-700 mb-2">姓名</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-user text-gray-400"></i>
+                </span>
+                <input type="text" id="name" name="name" required
+                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="employee_id" class="block text-gray-700 mb-2">工号</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-id-card text-gray-400"></i>
+                </span>
+                <input type="text" id="employee_id" name="employee_id" required
+                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="phone" class="block text-gray-700 mb-2">手机号</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-phone text-gray-400"></i>
+                </span>
+                <input type="tel" id="phone" name="phone" required
+                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="password" class="block text-gray-700 mb-2">密码</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-lock text-gray-400"></i>
+                </span>
+                <input type="password" id="password" name="password" required
+                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <label for="confirm_password" class="block text-gray-700 mb-2">确认密码</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-lock-open text-gray-400"></i>
+                </span>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <label for="team" class="block text-gray-700 mb-2">所属区队</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i class="fas fa-users text-gray-400"></i>
+                </span>
+                <select id="team" name="team" required
+                        class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">请选择区队</option>
+                    <option value="一区队">一区队</option>
+                    <option value="二区队">二区队</option>
+                    <option value="三区队">三区队</option>
+                    <option value="四区队">四区队</option>
+                </select>
+            </div>
+        </div>
+        
+        <button type="submit" 
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            注册
+        </button>
+    </form>
+    
+    <div class="mt-4 text-center">
+        <p>已有账号？<a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">立即登录</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-7xl mx-auto">
+    <!-- 页面标题和统计信息 -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">用户管理</h2>
+            <p class="text-gray-600 mt-1">管理系统中的所有用户账户和权限</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{{ url_for('home') }}" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>返回首页
+            </a>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <!-- 统计卡片保持不变 -->
+    </div>
+
+    <!-- 搜索和过滤 -->
+    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <!-- 搜索和过滤保持不变 -->
+    </div>
+    
+    <!-- 用户列表表格 -->
+    <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        用户信息
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        工号
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        手机号
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        角色
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        区队
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        注册时间
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for user in users %}
+                <tr class="hover:bg-gray-50 transition-colors user-row" 
+                    data-name="{{ user.name|lower if user.name else '' }}" 
+                    data-employee-id="{{ user.employee_id|lower if user.employee_id else '' }}" 
+                    data-phone="{{ user.phone if user.phone else '' }}" 
+                    data-role="{{ user.role if user.role else 'user' }}">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 font-mono">{{ user.employee_id }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">{{ user.id }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ user.phone }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if session.role == 'super_admin' and user.role != 'super_admin' %}
+                        <!-- 角色修改表单 - 在原位置 -->
+                        <form method="POST" action="{{ url_for('change_user_role', user_id=user.id) }}" 
+                              onsubmit="return confirmRoleChange('{{ user.name }}', '{{ '超级管理员' if user.role == 'super_admin' else '系统管理员' if user.role == 'admin' else '普通用户' }}')">
+                            <div class="flex items-center space-x-2">
+                                <select name="role" class="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="user" {% if user.role == 'user' %}selected{% endif %}>普通用户</option>
+                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>系统管理员</option>
+                                </select>
+                                <button type="submit" class="bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700 transition-colors focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                                    <i class="fas fa-save mr-1"></i>更新
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <!-- 显示角色标签 -->
+                        <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full 
+                            {% if user.role == 'super_admin' %}bg-red-100 text-red-800 border border-red-200
+                            {% elif user.role == 'admin' %}bg-purple-100 text-purple-800 border border-purple-200
+                            {% else %}bg-green-100 text-green-800 border border-green-200{% endif %}">
+                            <i class="fas {% if user.role == 'super_admin' %}fa-crown{% elif user.role == 'admin' %}fa-user-shield{% else %}fa-user{% endif %} mr-1"></i>
+                            {% if user.role == 'super_admin' %}超级管理员
+                            {% elif user.role == 'admin' %}系统管理员
+                            {% else %}普通用户{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if session.role == 'super_admin' and user.role != 'super_admin' %}
+                        <!-- 区队修改表单 - 在原位置 -->
+                        <form method="POST" action="{{ url_for('change_user_team', user_id=user.id) }}">
+                            <div class="flex items-center space-x-2">
+                                <select name="team" class="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">--选择区队--</option>
+                                    <option value="一区队" {% if user.team=='一区队' %}selected{% endif %}>一区队</option>
+                                    <option value="二区队" {% if user.team=='二区队' %}selected{% endif %}>二区队</option>
+                                    <option value="三区队" {% if user.team=='三区队' %}selected{% endif %}>三区队</option>
+                                    <option value="四区队" {% if user.team=='四区队' %}selected{% endif %}>四区队</option>
+                                </select>
+                                <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    <i class="fas fa-save mr-1"></i>更新
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <!-- 显示区队文本 -->
+                        <div class="text-sm text-gray-900">{{ user.team or '未设置' }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '未知' }}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- 权限说明 -->
+    <div class="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+        <h3 class="text-sm font-medium text-purple-800 mb-2">🔐 权限说明</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-purple-700">
+            <div>
+                <h4 class="font-medium mb-1">当前用户权限</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    {% if session.role == 'super_admin' %}
+                        <li><strong>超级管理员</strong>：可以修改所有用户角色和区队</li>
+                        <li><strong>最高权限</strong>：包括其他管理员</li>
+                    {% elif session.role == 'admin' %}
+                        <li><strong>系统管理员</strong>：只能查看用户信息</li>
+                        <li><strong>限制权限</strong>：不能修改任何用户信息</li>
+                    {% else %}
+                        <li><strong>普通用户</strong>：无法访问此功能</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-1">操作限制</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>用户不能修改自己的角色</li>
+                    <li>只有超级管理员可修改任何用户角色和区队</li>
+                    <li>系统只能有一个超级管理员</li>
+                    <li>角色修改会立即生效</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 说明和注意事项 -->
+    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 class="text-sm font-medium text-blue-800 mb-2">📋 操作说明</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+            <div>
+                <h4 class="font-medium mb-1">功能说明</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li><strong>管理员</strong>：可以访问所有系统功能</li>
+                    <li><strong>普通用户</strong>：只能访问基本功能</li>
+                    <li><strong>区队管理</strong>：超级管理员可以修改用户区队</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-1">注意事项</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>系统只能有一个超级管理员</li>
+                    <li>建议至少保留一个管理员账户</li>
+                    <li>用户角色变更会记录在系统日志中</li>
+                    <li>请谨慎操作，避免误操作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 功能 -->
+<script>
+// 搜索和过滤功能
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search');
+    const roleFilter = document.getElementById('role-filter');
+    const userRows = document.querySelectorAll('.user-row');
+    
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedRole = roleFilter.value;
+        
+        userRows.forEach(row => {
+            const name = row.dataset.name;
+            const employeeId = row.dataset.employeeId;
+            const phone = row.dataset.phone;
+            const role = row.dataset.role;
+            
+            const matchesSearch = name.includes(searchTerm) || 
+                                employeeId.includes(searchTerm) || 
+                                phone.includes(searchTerm);
+            const matchesRole = !selectedRole || role === selectedRole;
+            
+            if (matchesSearch && matchesRole) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    searchInput.addEventListener('input', filterUsers);
+    roleFilter.addEventListener('change', filterUsers);
+});
+
+// 角色变更确认
+function confirmRoleChange(userName, currentRole) {
+    const newRole = event.target.closest('form').querySelector('select[name="role"]').value;
+    const newRoleText = newRole === 'admin' ? '系统管理员' : '普通用户';
+    
+    if (currentRole === newRoleText) {
+        alert('用户角色没有发生变化');
+        return false;
+    }
+    
+    const message = '确定要将用户 "' + userName + '" 的角色从 ' + currentRole + ' 更改为 ' + newRoleText + ' 吗？\n\n此操作将立即生效！';
+    return confirm(message);
+}
+</script>
+{% endblock %}

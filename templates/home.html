@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}首页{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold">欢迎回来，{{ name }}！</h2>
+            <div class="flex items-center mt-1">
+                <span class="text-gray-600 mr-3">
+                    <i class="fas fa-user-tag mr-1"></i>角色：{{ '超级管理员' if role == 'super_admin' else '系统管理员' if role == 'admin' else '普通用户' }}
+                </span>
+                <span class="text-gray-600">
+                    <i class="fas fa-users mr-1"></i>区队：{{ team or '未设置' }}
+                </span>
+            </div>
+        </div>
+        {% if role in ['super_admin', 'admin'] %}
+        <div class="flex space-x-3">
+            <a href="{{ url_for('admin_users') }}" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                <i class="fas fa-users-cog mr-2"></i>用户管理
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <p class="mb-6">您已成功登录机电管理系统。</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h3 class="font-semibold text-blue-700 mb-2">系统功能</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <li>设备管理</li>
+                <li>维护记录</li>
+                <li>故障申报</li>
+                <li>报表统计</li>
+            </ul>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+            <h3 class="font-semibold text-green-700 mb-2">快捷操作</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <li>新增设备</li>
+                <li>安排维护</li>
+                <li>查看待办</li>
+                <li>更新资料</li>
+            </ul>
+        </div>
+        
+        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+            <h3 class="font-semibold text-yellow-700 mb-2">系统通知</h3>
+            <ul class="list-disc list-inside text-gray-700">
+                <li>暂无新通知</li>
+            </ul>
+        </div>
+    </div>
+    
+    {% if role in ['super_admin', 'admin'] %}
+    <div class="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+        <h3 class="font-semibold text-purple-700 mb-2">
+            {% if role == 'super_admin' %}超级管理员功能{% else %}系统管理员功能{% endif %}
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h4 class="font-medium text-purple-600">用户管理</h4>
+                <p class="text-sm text-gray-600">
+                    {% if role == 'super_admin' %}
+                        管理所有用户账户，包括其他管理员
+                    {% else %}
+                        只能查看用户信息，不能修改角色
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <h4 class="font-medium text-purple-600">系统设置</h4>
+                <p class="text-sm text-gray-600">配置系统参数和权限设置</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="mt-6 text-right">
+        <a href="{{ url_for('logout') }}" class="text-red-600 hover:underline">
+            <i class="fas fa-sign-out-alt mr-1"></i> 退出登录
+        </a>
+    </div>
+</div>
+{% endblock %}
