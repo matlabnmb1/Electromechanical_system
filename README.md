@@ -156,7 +156,7 @@ python app.py
 
 如有问题或建议，请通过以下方式联系：
 - 提交GitHub Issue
-- 发送邮件至：[your-email@example.com]
+- 发送邮件至：[matlabnm@163.com]
 
 ---
 
