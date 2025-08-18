@@ -1,91 +1,126 @@
-{% extends "base.html" %}
-
-{% block title %}注册{% endblock %}
-
-{% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-6 text-center">用户注册</h2>
-    <form method="POST">
-        <div class="mb-4">
-            <label for="name" class="block text-gray-700 mb-2">姓名</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-user text-gray-400"></i>
-                </span>
-                <input type="text" id="name" name="name" required
-                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 机电管理系统</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <!-- 注册卡片 -->
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo-container">
+                        <i class="fas fa-building text-white text-4xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold mb-2 text-center text-blue-700">用户注册</h2>
+                    <p class="text-center text-blue-500 mb-8">创建您的账户</p>
+                </div>
+                
+                <form method="POST" class="login-form">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="mb-6">
+                                {% for category, message in messages %}
+                                    <div class="px-4 py-3 rounded relative mb-2
+                                        {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700
+                                        {% elif category == 'success' %}bg-green-100 border border-green-400 text-green-700
+                                        {% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}"
+                                        role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="form-group">
+                        <label for="name" class="label-text">姓名</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-user text-blue-400"></i>
+                            </span>
+                            <input type="text" id="name" name="name" required
+                                   class="magic-input" placeholder="请输入您的姓名">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employee_id" class="label-text">工号</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-id-card text-blue-400"></i>
+                            </span>
+                            <input type="text" id="employee_id" name="employee_id" required
+                                   class="magic-input" placeholder="请输入您的工号">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" class="label-text">手机号</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-phone text-blue-400"></i>
+                            </span>
+                            <input type="tel" id="phone" name="phone" required
+                                   class="magic-input" placeholder="请输入您的手机号">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="label-text">密码</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-lock text-blue-400"></i>
+                            </span>
+                            <input type="password" id="password" name="password" required
+                                   class="magic-input" placeholder="请设置您的密码">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password" class="label-text">确认密码</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-lock-open text-blue-400"></i>
+                            </span>
+                            <input type="password" id="confirm_password" name="confirm_password" required
+                                   class="magic-input" placeholder="请再次输入密码">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="team" class="label-text">所属区队</label>
+                        <div class="input-wrapper">
+                            <span class="icon-wrapper">
+                                <i class="fas fa-users text-blue-400"></i>
+                            </span>
+                            <select id="team" name="team" required
+                                    class="magic-input">
+                                <option value="">请选择区队</option>
+                                <option value="机电一队">机电一队</option>
+                                <option value="机电二队">机电二队</option>
+                                <option value="综采队">综采队</option>
+                                <option value="运转队">运转队</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="magic-button">
+                        <span class="button-text">注册</span>
+                    </button>
+                </form>
+                
+                <div class="login-footer">
+                    <p>已有账号？ <a href="{{ url_for('login') }}" class="register-link">立即登录</a></p>
+                </div>
             </div>
         </div>
-        
-        <div class="mb-4">
-            <label for="employee_id" class="block text-gray-700 mb-2">工号</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-id-card text-gray-400"></i>
-                </span>
-                <input type="text" id="employee_id" name="employee_id" required
-                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-        </div>
-        
-        <div class="mb-4">
-            <label for="phone" class="block text-gray-700 mb-2">手机号</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-phone text-gray-400"></i>
-                </span>
-                <input type="tel" id="phone" name="phone" required
-                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-        </div>
-        
-        <div class="mb-4">
-            <label for="password" class="block text-gray-700 mb-2">密码</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-lock text-gray-400"></i>
-                </span>
-                <input type="password" id="password" name="password" required
-                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-        </div>
-        
-        <div class="mb-6">
-            <label for="confirm_password" class="block text-gray-700 mb-2">确认密码</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-lock-open text-gray-400"></i>
-                </span>
-                <input type="password" id="confirm_password" name="confirm_password" required
-                       class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-        </div>
-        
-        <div class="mb-6">
-            <label for="team" class="block text-gray-700 mb-2">所属区队</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-users text-gray-400"></i>
-                </span>
-                <select id="team" name="team" required
-                        class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">请选择区队</option>
-                    <option value="一区队">一区队</option>
-                    <option value="二区队">二区队</option>
-                    <option value="三区队">三区队</option>
-                    <option value="四区队">四区队</option>
-                </select>
-            </div>
-        </div>
-        
-        <button type="submit" 
-                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            注册
-        </button>
-    </form>
-    
-    <div class="mt-4 text-center">
-        <p>已有账号？<a href="{{ url_for('login') }}" class="text-blue-600 hover:underline">立即登录</a></p>
     </div>
-</div>
-{% endblock %}
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

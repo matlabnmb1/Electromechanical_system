@@ -113,10 +113,10 @@
                             <div class="flex items-center space-x-2">
                                 <select name="team" class="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">--选择区队--</option>
-                                    <option value="一区队" {% if user.team=='一区队' %}selected{% endif %}>一区队</option>
-                                    <option value="二区队" {% if user.team=='二区队' %}selected{% endif %}>二区队</option>
-                                    <option value="三区队" {% if user.team=='三区队' %}selected{% endif %}>三区队</option>
-                                    <option value="四区队" {% if user.team=='四区队' %}selected{% endif %}>四区队</option>
+                                    <option value="机电一队" {% if user.team=='机电一队' %}selected{% endif %}>机电一队</option>
+                                    <option value="机电二队" {% if user.team=='机电二队' %}selected{% endif %}>机电二队</option>
+                                    <option value="综采队" {% if user.team=='综采队' %}selected{% endif %}>综采队</option>
+                                    <option value="运转队" {% if user.team=='运转队' %}selected{% endif %}>运转队</option>
                                 </select>
                                 <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     <i class="fas fa-save mr-1"></i>更新
