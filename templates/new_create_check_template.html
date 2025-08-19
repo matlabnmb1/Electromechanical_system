@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}创建表格模板{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">创建表格模板</h2>
+        <a href="{{ url_for('check_templates') }}" class="text-gray-600 hover:text-gray-800 transition-colors">
+            <i class="fas fa-times mr-1"></i> 取消
+        </a>
+    </div>
+    
+    <form method="POST" class="space-y-6">
+        <div class="space-y-4">
+            <!-- 模板基本信息 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="template_name" class="block text-gray-700 font-medium mb-2">模板名称 <span class="text-red-500">*</span></label>
+                    <input type="text" id="template_name" name="template_name" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label for="team" class="block text-gray-700 font-medium mb-2">所属区队 <span class="text-red-500">*</span></label>
+                    {% if role == 'super_admin' %}
+                    <select id="team" name="team" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">请选择区队</option>
+                        {% for team_option in teams %}
+                        <option value="{{ team_option }}">{{ team_option }}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <input type="text" id="team" name="team" value="{{ team }}" disabled
+                           class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                    <input type="hidden" name="team" value="{{ team }}">
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 表格结构可视化编辑器 -->
+            <div class="mt-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">表格结构编辑</h3>
+                    <button type="button" id="add_column_btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200">
+                        <i class="fas fa-plus mr-1"></i> 添加列
+                    </button>
+                </div>
+                
+                <!-- 列编辑区域 -->
+                <div id="columns_container" class="border border-gray-200 rounded-md overflow-hidden">
+                    <!-- 列会通过JavaScript动态生成 -->
+                    <div class="text-gray-500 text-center py-8">
+                        <i class="fas fa-table text-4xl mb-2 text-gray-300"></i>
+                        <p>点击"添加列"按钮开始创建表格结构</p>
+                    </div>
+                </div>
+                
+                <!-- 表格预览 -->
+                <div class="mt-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">表格预览</h3>
+                        <button type="button" id="preview_table_btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200">
+                            <i class="fas fa-eye mr-1"></i> 刷新预览
+                        </button>
+                    </div>
+                    <div id="table_preview" class="border border-gray-200 rounded-md p-4 overflow-x-auto">
+                        <!-- 预览会通过JavaScript动态生成 -->
+                        <p class="text-gray-500 text-center py-4">添加列后可以预览表格效果</p>
+                    </div>
+                </div>
+                
+                <!-- 隐藏的结构JSON字段 -->
+                <textarea id="structure" name="structure" rows="0" cols="0" required class="hidden"></textarea>
+            </div>
+        </div>
+        
+        <div class="pt-4 border-t border-gray-200">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-200 mr-4">
+                <i class="fas fa-save mr-2"></i>保存模板
+            </button>
+            <a href="{{ url_for('check_templates') }}" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>返回
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- 引入表格编辑器的JavaScript -->
+<script src="{{ url_for('static', filename='table_editor.js') }}"></script>
+{% endblock %}

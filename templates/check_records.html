@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}表格记录列表{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">表格记录列表</h2>
+        <a href="{{ url_for('check_templates') }}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            <i class="fas fa-file-alt mr-2"></i>模板管理
+        </a>
+    </div>
+    
+    {% if records %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr class="bg-gray-100 text-gray-700">
+                    <th class="py-3 px-4 border-b text-left">模板名称</th>
+                    <th class="py-3 px-4 border-b text-left">所属区队</th>
+                    <th class="py-3 px-4 border-b text-left">创建者</th>
+                    <th class="py-3 px-4 border-b text-left">创建时间</th>
+                    <th class="py-3 px-4 border-b text-left">最后更新</th>
+                    <th class="py-3 px-4 border-b text-left">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="hover:bg-gray-50">
+                    <td class="py-3 px-4 border-b">
+                        <a href="#" class="text-blue-600 hover:underline">{{ record.template_name }}</a>
+                    </td>
+                    <td class="py-3 px-4 border-b">{{ record.template_team }}</td>
+                    <td class="py-3 px-4 border-b">{{ record.creator_name }}</td>
+                    <td class="py-3 px-4 border-b">{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="py-3 px-4 border-b">{{ record.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="py-3 px-4 border-b">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('view_check_record', record_id=record.id) }}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">
+                                <i class="fas fa-eye mr-1"></i>查看
+                            </a>
+                            {% if role == 'super_admin' %}
+                            <a href="{{ url_for('edit_check_record', record_id=record.id) }}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
+                                <i class="fas fa-edit mr-1"></i>编辑
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-10 text-gray-500">
+        <i class="fas fa-file-alt text-4xl mb-3"></i>
+        <p>暂无表格记录</p>
+        <p class="mt-2">请先创建并填写表格模板</p>
+    </div>
+    {% endif %}
+    
+    <div class="mt-6 text-center">
+        <a href="{{ url_for('home') }}" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-arrow-left mr-1"></i> 返回首页
+        </a>
+    </div>
+</div>
+{% endblock %}

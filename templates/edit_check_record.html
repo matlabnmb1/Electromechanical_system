@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}编辑表格记录 - {{ record.name }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">编辑表格记录 - {{ record.name }}</h2>
+        <a href="{{ url_for('check_records') }}" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-times mr-1"></i> 取消
+        </a>
+    </div>
+    
+    <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <p class="text-blue-700"><i class="fas fa-info-circle mr-2"></i>所属区队：{{ record.team }}</p>
+        <p class="text-blue-700 mt-1"><i class="fas fa-clock mr-2"></i>创建时间：{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        <p class="text-blue-700 mt-1"><i class="fas fa-user mr-2"></i>创建者：{{ name }}</p>
+    </div>
+    
+    <form method="POST" class="space-y-6">
+        <div class="space-y-4" id="table-fields">
+            <!-- 动态生成的表格字段将在这里显示 -->
+            
+            <!-- 这里添加隐藏的JSON数据字段 -->
+            <input type="hidden" id="data" name="data" value="">
+        </div>
+        
+        <div class="pt-4 border-t border-gray-200">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                <i class="fas fa-save mr-2"></i>更新记录
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 模板结构数据
+    const templateStructure = {{ template_structure|tojson|safe }};
+    // 现有记录数据
+    const recordData = {{ record_data|tojson|safe }};
+    
+    // 初始化表格数据
+    let tableData = { ...recordData };
+    
+    // 渲染表格字段
+    function renderTableFields() {
+        const container = document.getElementById('table-fields');
+        
+        // 清空容器
+        while (container.firstChild) {
+            if (container.firstChild.tagName === 'INPUT' && container.firstChild.name === 'data') {
+                // 保留隐藏的数据字段
+                break;
+            }
+            container.removeChild(container.firstChild);
+        }
+        
+        // 添加表格标题
+        const tableHeader = document.createElement('div');
+        tableHeader.className = 'text-lg font-semibold mb-4';
+        tableHeader.textContent = '表格内容';
+        container.prepend(tableHeader);
+        
+        // 渲染每个字段
+        templateStructure.columns.forEach(column => {
+            const fieldContainer = document.createElement('div');
+            
+            const label = document.createElement('label');
+            label.className = 'block text-gray-700 font-medium mb-2';
+            label.textContent = column.name;
+            fieldContainer.appendChild(label);
+            
+            let input;
+            
+            switch (column.type) {
+                case 'text':
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.value = tableData[column.name] || '';
+                    input.addEventListener('input', function() {
+                        updateTableData(column.name, this.value);
+                    });
+                    break;
+                
+                case 'number':
+                    input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.value = tableData[column.name] || '';
+                    input.addEventListener('input', function() {
+                        updateTableData(column.name, this.value);
+                    });
+                    break;
+                
+                case 'datetime':
+                    input = document.createElement('input');
+                    input.type = 'datetime-local';
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.value = tableData[column.name] || '';
+                    input.addEventListener('input', function() {
+                        updateTableData(column.name, this.value);
+                    });
+                    break;
+                
+                case 'select':
+                    input = document.createElement('select');
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = '请选择';
+                    input.appendChild(defaultOption);
+                    
+                    if (column.options) {
+                        column.options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option;
+                            opt.textContent = option;
+                            if (tableData[column.name] === option) {
+                                opt.selected = true;
+                            }
+                            input.appendChild(opt);
+                        });
+                    }
+                    
+                    input.addEventListener('change', function() {
+                        updateTableData(column.name, this.value);
+                    });
+                    break;
+                
+                case 'textarea':
+                    input = document.createElement('textarea');
+                    input.rows = 4;
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.value = tableData[column.name] || '';
+                    input.addEventListener('input', function() {
+                        updateTableData(column.name, this.value);
+                    });
+                    break;
+                
+                case 'checkbox':
+                    const checkboxContainer = document.createElement('div');
+                    checkboxContainer.className = 'flex items-center';
+                    
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded';
+                    if (tableData[column.name]) {
+                        input.checked = tableData[column.name];
+                    }
+                    input.addEventListener('change', function() {
+                        updateTableData(column.name, this.checked);
+                    });
+                    
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.className = 'ml-2 block text-gray-700';
+                    checkboxLabel.textContent = '是';
+                    
+                    checkboxContainer.appendChild(input);
+                    checkboxContainer.appendChild(checkboxLabel);
+                    fieldContainer.appendChild(checkboxContainer);
+                    break;
+                
+                default:
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    input.value = tableData[column.name] || '';
+                    input.addEventListener('input', function() {
+                        updateTableData(column.name, this.value);
+                    });
+            }
+            
+            if (input && column.type !== 'checkbox') {
+                fieldContainer.appendChild(input);
+            }
+            
+            container.prepend(fieldContainer);
+        });
+    }
+    
+    // 更新表格数据
+    function updateTableData(fieldName, value) {
+        tableData[fieldName] = value;
+        document.getElementById('data').value = JSON.stringify(tableData);
+    }
+    
+    // 页面加载时渲染表格字段
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTableFields();
+        document.getElementById('data').value = JSON.stringify(tableData);
+    });
+    
+    // 表单提交前确保数据已保存
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('data').value = JSON.stringify(tableData);
+    });
+</script>
+{% endblock %}

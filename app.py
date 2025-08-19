@@ -215,5 +215,289 @@ def change_user_team(user_id):
     flash(f'用户 {target_user["name"]} 的区队已更新为 {new_team}', 'success')
     return redirect(url_for('admin_users'))
 
+# 表格模板相关路由
+# 查看表格模板列表
+# 修改 check_templates 路由，传递role和team变量
+@app.route('/check/templates')
+def check_templates():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    
+    # 根据用户角色过滤模板
+    if session.get('role') == SUPER_ADMIN_ROLE:
+        # 超级管理员可以查看所有模板
+        cursor.execute('SELECT t.*, u.name AS creator_name FROM check_templates t LEFT JOIN users u ON t.created_by = u.id ORDER BY t.created_at DESC')
+    elif session.get('role') == ADMIN_ROLE:
+        # 管理员只能查看自己区队的模板
+        cursor.execute('SELECT t.*, u.name AS creator_name FROM check_templates t LEFT JOIN users u ON t.created_by = u.id WHERE t.team = %s ORDER BY t.created_at DESC', (session['team'],))
+    else:
+        # 普通用户可以查看自己区队的模板
+        cursor.execute('SELECT t.*, u.name AS creator_name FROM check_templates t LEFT JOIN users u ON t.created_by = u.id WHERE t.team = %s ORDER BY t.created_at DESC', (session['team'],))
+    
+    templates = cursor.fetchall()
+    cursor.close()
+    
+    # 传递role和team变量到模板
+    return render_template('check_templates.html', templates=templates, role=session.get('role', USER_ROLE), team=session.get('team'))
+
+# 修改 create_check_template 路由
+@app.route('/check/create_template', methods=['GET', 'POST'])
+def create_check_template():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    # 只有管理员和超级管理员可以创建模板
+    if session.get('role') not in [SUPER_ADMIN_ROLE, ADMIN_ROLE]:
+        flash('您没有权限创建表格模板', 'error')
+        return redirect(url_for('check_templates'))
+    
+    # 获取所有区队列表（用于超级管理员）
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT DISTINCT team FROM users WHERE team IS NOT NULL AND team != ""')
+    teams = [row['team'] for row in cursor.fetchall()]
+    cursor.close()
+    
+    if request.method == 'POST':
+        template_name = request.form['template_name']
+        team = request.form['team']
+        structure = request.form['structure']
+        
+        # 验证输入
+        if not template_name or not team or not structure:
+            flash('请填写所有必填字段', 'error')
+            return redirect(url_for('create_check_template'))
+        
+        # 插入新模板
+        cursor = mysql.connection.cursor()
+        cursor.execute('INSERT INTO check_templates (name, team, structure, created_by) VALUES (%s, %s, %s, %s)', 
+                      (template_name, team, structure, session['id']))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('表格模板创建成功', 'success')
+        return redirect(url_for('check_templates'))
+    
+    # 修改这一行，将模板从 create_check_template.html 改为 new_create_check_template.html
+    return render_template('new_create_check_template.html', teams=teams, role=session.get('role', USER_ROLE), team=session.get('team'))
+
+# 编辑表格模板
+@app.route('/check/edit_template/<int:template_id>', methods=['GET', 'POST'])
+def edit_check_template(template_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM check_templates WHERE id = %s', (template_id,))
+    template = cursor.fetchone()
+    
+    if not template:
+        flash('模板不存在', 'error')
+        return redirect(url_for('check_templates'))
+    
+    # 检查权限
+    if session.get('role') != SUPER_ADMIN_ROLE and (session.get('role') != ADMIN_ROLE or session['team'] != template['team']):
+        flash('您没有权限编辑此模板', 'error')
+        return redirect(url_for('check_templates'))
+    
+    # 获取所有区队列表（用于超级管理员）
+    cursor.execute('SELECT DISTINCT team FROM users WHERE team IS NOT NULL AND team != ""')
+    teams = [row['team'] for row in cursor.fetchall()]
+    cursor.close()
+    
+    if request.method == 'POST':
+        template_name = request.form['template_name']
+        team = request.form['team']
+        structure = request.form['structure']
+        
+        # 验证输入
+        if not template_name or not team or not structure:
+            flash('请填写所有必填字段', 'error')
+            return redirect(url_for('edit_check_template', template_id=template_id))
+        
+        # 更新模板
+        cursor = mysql.connection.cursor()
+        cursor.execute('UPDATE check_templates SET name = %s, team = %s, structure = %s WHERE id = %s', 
+                      (template_name, team, structure, template_id))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('表格模板更新成功', 'success')
+        return redirect(url_for('check_templates'))
+    
+    return render_template('edit_check_template.html', template=template, teams=teams)
+
+# 查看表格记录列表
+@app.route('/check/records')
+def check_records():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    
+    # 根据用户角色过滤记录
+    if session.get('role') == SUPER_ADMIN_ROLE:
+        # 超级管理员可以查看所有记录
+        cursor.execute('''
+            SELECT r.*, t.name AS template_name, t.team AS template_team, u.name AS creator_name 
+            FROM check_records r 
+            LEFT JOIN check_templates t ON r.template_id = t.id 
+            LEFT JOIN users u ON r.created_by = u.id 
+            ORDER BY r.created_at DESC
+        ''')
+    elif session.get('role') == ADMIN_ROLE:
+        # 管理员只能查看自己区队的记录
+        cursor.execute('''
+            SELECT r.*, t.name AS template_name, t.team AS template_team, u.name AS creator_name 
+            FROM check_records r 
+            LEFT JOIN check_templates t ON r.template_id = t.id 
+            LEFT JOIN users u ON r.created_by = u.id 
+            WHERE t.team = %s 
+            ORDER BY r.created_at DESC
+        ''', (session['team'],))
+    else:
+        # 普通用户可以查看自己区队的记录
+        cursor.execute('''
+            SELECT r.*, t.name AS template_name, t.team AS template_team, u.name AS creator_name 
+            FROM check_records r 
+            LEFT JOIN check_templates t ON r.template_id = t.id 
+            LEFT JOIN users u ON r.created_by = u.id 
+            WHERE t.team = %s 
+            ORDER BY r.created_at DESC
+        ''', (session['team'],))
+    
+    records = cursor.fetchall()
+    cursor.close()
+    
+    return render_template('check_records.html', records=records)
+
+# 创建表格记录
+@app.route('/check/create_record/<int:template_id>', methods=['GET', 'POST'])
+def create_check_record(template_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM check_templates WHERE id = %s', (template_id,))
+    template = cursor.fetchone()
+    
+    if not template:
+        flash('模板不存在', 'error')
+        return redirect(url_for('check_templates'))
+    
+    # 检查权限（普通用户只能填写自己区队的模板）
+    if session.get('role') == USER_ROLE and session['team'] != template['team']:
+        flash('您没有权限填写此模板', 'error')
+        return redirect(url_for('check_templates'))
+    
+    if request.method == 'POST':
+        data = request.form['data']
+        
+        # 验证输入
+        if not data:
+            flash('请填写表格数据', 'error')
+            return redirect(url_for('create_check_record', template_id=template_id))
+        
+        # 插入新记录
+        cursor = mysql.connection.cursor()
+        cursor.execute('INSERT INTO check_records (template_id, data, created_by) VALUES (%s, %s, %s)', 
+                      (template_id, data, session['id']))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('表格记录创建成功', 'success')
+        return redirect(url_for('check_records'))
+    
+    # 将JSON字符串转换为Python对象以便在模板中使用
+    import json
+    template_structure = json.loads(template['structure'])
+    
+    cursor.close()
+    
+    return render_template('create_check_record.html', template=template, template_structure=template_structure)
+
+# 查看表格记录
+@app.route('/check/view_record/<int:record_id>')
+def view_check_record(record_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('''
+        SELECT r.*, t.* 
+        FROM check_records r 
+        LEFT JOIN check_templates t ON r.template_id = t.id 
+        WHERE r.id = %s
+    ''', (record_id,))
+    record = cursor.fetchone()
+    
+    if not record:
+        flash('记录不存在', 'error')
+        return redirect(url_for('check_records'))
+    
+    # 查询创建者信息
+    cursor.execute('SELECT name FROM users WHERE id = %s', (record['created_by'],))
+    creator = cursor.fetchone()
+    name = creator['name'] if creator else '未知'
+    
+    # 将JSON字符串转换为Python对象以便在模板中使用
+    import json
+    template_structure = json.loads(record['structure'])
+    record_data = json.loads(record['data'])
+    
+    cursor.close()
+    
+    return render_template('view_check_record.html', record=record, template_structure=template_structure, record_data=record_data, name=name)
+
+# 编辑表格记录
+@app.route('/check/edit_record/<int:record_id>', methods=['GET', 'POST'])
+def edit_check_record(record_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('''
+        SELECT r.*, t.* 
+        FROM check_records r 
+        LEFT JOIN check_templates t ON r.template_id = t.id 
+        WHERE r.id = %s
+    ''', (record_id,))
+    record = cursor.fetchone()
+    
+    if not record:
+        flash('记录不存在', 'error')
+        return redirect(url_for('check_records'))
+    
+    # 检查权限 - 只有超级管理员才能修改记录
+    if session.get('role') != SUPER_ADMIN_ROLE:
+        flash('只有超级管理员才能修改记录', 'error')
+        return redirect(url_for('check_records'))
+    
+    if request.method == 'POST':
+        data = request.form['data']
+        
+        # 验证输入
+        if not data:
+            flash('请填写表格数据', 'error')
+            return redirect(url_for('edit_check_record', record_id=record_id))
+        
+        # 更新记录
+        cursor.execute('UPDATE check_records SET data = %s WHERE id = %s', (data, record_id))
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('表格记录更新成功', 'success')
+        return redirect(url_for('check_records'))
+    
+    # 将JSON字符串转换为Python对象以便在模板中使用
+    import json
+    template_structure = json.loads(record['structure'])
+    record_data = json.loads(record['data'])
+    
+    cursor.close()
+    
+    return render_template('edit_check_record.html', record=record, template_structure=template_structure, record_data=record_data)
+
 if __name__ == '__main__':
     app.run(debug=True)

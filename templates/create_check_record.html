@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}创建表格记录 - {{ template.name }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">创建表格记录 - {{ template.name }}</h2>
+        <a href="{{ url_for('check_templates') }}" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-times mr-1"></i> 取消
+        </a>
+    </div>
+    
+    <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <p class="text-blue-700"><i class="fas fa-info-circle mr-2"></i>所属区队：{{ template.team }}</p>
+    </div>
+    
+    <form method="POST" class="space-y-6">
+        <div class="space-y-4" id="table-fields">
+            <!-- 动态生成的表格字段将在这里显示 -->
+            
+            <!-- 这里添加隐藏的JSON数据字段 -->
+            <input type="hidden" id="data" name="data" value="">
+        </div>
+        
+        <div class="pt-4 border-t border-gray-200">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                <i class="fas fa-save mr-2"></i>保存记录
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 引入Excel风格表格填写界面脚本 -->
+<script src="{{ url_for('static', filename='excel_style_form.js') }}"></script>
+<script>
+    // 暴露模板结构数据到全局变量
+    window.templateStructure = {{ template_structure|tojson|safe }};
+    window.recordData = {};
+</script>
+{% endblock %}
